@@ -1,6 +1,7 @@
 use casper_types::bytesrepr::Bytes;
 use casper_types::{
-    AddressableEntityHash, PackageHash, PublicKey, TransactionCategory, TransferTarget, URef, U512,
+    AddressableEntityHash, PackageHash, PublicKey, TransactionCategory, TransactionRuntime,
+    TransferTarget, URef, U512,
 };
 
 /// An enum representing the parameters needed to construct a transaction builder
@@ -55,6 +56,8 @@ pub enum TransactionBuilderParams<'a> {
         entity_hash: AddressableEntityHash,
         /// The entry point for the invocable entity transaction
         entry_point: &'a str,
+        /// Transaction Runtime.
+        runtime: TransactionRuntime,
     },
     /// Parameters for the invocable entity alias variant of the transaction builder
     InvocableEntityAlias {
@@ -62,6 +65,8 @@ pub enum TransactionBuilderParams<'a> {
         entity_alias: &'a str,
         /// The entry_point for the invocable entity alias transaction
         entry_point: &'a str,
+        /// Transaction Runtime.
+        runtime: TransactionRuntime,
     },
     /// Parameters for the package variant of the transaction builder
     Package {
@@ -71,6 +76,8 @@ pub enum TransactionBuilderParams<'a> {
         maybe_entity_version: Option<u32>,
         /// The entry_point for the package transaction
         entry_point: &'a str,
+        /// Transaction Runtime.
+        runtime: TransactionRuntime,
     },
     /// Parameters for the package alias variant of the transaction builder
     PackageAlias {
@@ -80,6 +87,8 @@ pub enum TransactionBuilderParams<'a> {
         maybe_entity_version: Option<u32>,
         /// The entry point for the package alias transaction
         entry_point: &'a str,
+        /// Transaction Runtime.
+        runtime: TransactionRuntime,
     },
     /// Parameters for the session variant of the transaction builder
     Session {
@@ -87,6 +96,8 @@ pub enum TransactionBuilderParams<'a> {
         transaction_bytes: Bytes,
         /// Transaction category
         transaction_category: TransactionCategory,
+        /// Transaction Runtime.
+        runtime: TransactionRuntime,
     },
     /// Parameters for the transfer variant of the transaction builder
     Transfer {

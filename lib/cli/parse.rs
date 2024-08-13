@@ -826,6 +826,7 @@ pub(super) fn pricing_mode(
     pricing_mode_identifier_str: &str,
     maybe_payment_amount_str: &str,
     maybe_gas_price_tolerance_str: &str,
+    maybe_gas_limit: &str,
     maybe_standard_payment_str: &str,
     maybe_receipt: Option<Digest>,
 ) -> Result<PricingMode, CliError> {
@@ -901,6 +902,32 @@ pub(super) fn pricing_mode(
             }
             Ok(PricingMode::Reserved {
                 receipt: maybe_receipt.unwrap_or_default(),
+            })
+        }
+        "gas-limited" => {
+            if maybe_gas_limit.is_empty() {
+                return Err(CliError::InvalidArgument {
+                    context: "pricing_mode",
+                    error: "Gas limited pricing mode requires a provided gas limit".to_string(),
+                });
+            }
+            let gas_limit =
+                maybe_gas_limit
+                    .parse::<u64>()
+                    .map_err(|error| CliError::FailedToParseInt {
+                        context: "gas_limit",
+                        error,
+                    })?;
+            let gas_price_tolerance =
+                maybe_gas_price_tolerance_str
+                    .parse::<u8>()
+                    .map_err(|error| CliError::FailedToParseInt {
+                        context: "gas_price_tolerance",
+                        error,
+                    })?;
+            Ok(PricingMode::GasLimited {
+                gas_limit,
+                gas_price_tolerance,
             })
         }
         _ => Err(CliError::InvalidArgument {
@@ -1688,12 +1715,14 @@ mod tests {
         fn should_parse_fixed_pricing_mode_identifier() {
             let pricing_mode_str = "fixed";
             let payment_amount = "";
+            let gas_limit = "";
             let gas_price_tolerance = "10";
             let standard_payment = "";
             let parsed = pricing_mode(
                 pricing_mode_str,
                 payment_amount,
                 gas_price_tolerance,
+                gas_limit,
                 standard_payment,
                 None,
             )
@@ -1710,11 +1739,13 @@ mod tests {
             let pricing_mode_str = "reserved";
             let payment_amount = "";
             let gas_price_tolerance = "";
+            let gas_limit = "";
             let standard_payment = "";
             let parsed = pricing_mode(
                 pricing_mode_str,
                 payment_amount,
                 gas_price_tolerance,
+                gas_limit,
                 standard_payment,
                 Some(Digest::from_hex(VALID_HASH).unwrap()),
             )
@@ -1731,11 +1762,13 @@ mod tests {
             let pricing_mode_str = "classic";
             let payment_amount = "10";
             let standard_payment = "true";
+            let gas_limit = "";
             let gas_price_tolerance = "10";
             let parsed = pricing_mode(
                 pricing_mode_str,
                 payment_amount,
                 gas_price_tolerance,
+                gas_limit,
                 standard_payment,
                 None,
             )
@@ -1755,11 +1788,13 @@ mod tests {
             let pricing_mode_str = "invalid";
             let payment_amount = "10";
             let standard_payment = "true";
+            let gas_limit = "";
             let gas_price_tolerance = "10";
             let parsed = pricing_mode(
                 pricing_mode_str,
                 payment_amount,
                 gas_price_tolerance,
+                gas_limit,
                 standard_payment,
                 None,
             );
@@ -1772,11 +1807,13 @@ mod tests {
             let pricing_mode_str = "classic";
             let payment_amount = "";
             let standard_payment = "true";
+            let gas_limit = "";
             let gas_price_tolerance = "10";
             let parsed = pricing_mode(
                 pricing_mode_str,
                 payment_amount,
                 gas_price_tolerance,
+                gas_limit,
                 standard_payment,
                 None,
             );
