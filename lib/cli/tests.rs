@@ -437,64 +437,68 @@ mod transaction {
         bytesrepr::Bytes, PackageAddr, TransactionEntryPoint, TransactionInvocationTarget,
         TransactionRuntime, TransactionTarget, TransactionV1BuilderError, TransferTarget,
     };
-    const SAMPLE_TRANSACTION: &str = r#"{
-  "hash": "f868596bbfd729547ffa25c3421df29d6650cec73e9fe3d0aff633fe2d6ac952",
-  "header": {
-    "chain_name": "test",
-    "timestamp": "2024-01-26T19:08:53.498Z",
-    "ttl": "30m",
-    "body_hash": "fb94fd83178e3acf22546beebf5f44692499d681c4381f6d145d85ff9b5fc152",
-    "pricing_mode": {
-      "Fixed": {
-        "gas_price_tolerance": 10
-      }
-    },
-    "initiator_addr": {
-      "PublicKey": "01722e1b3d31bef0ba832121bd2941aae6a246d0d05ac95aa16dd587cc5469871d"
-    }
-  },
-  "body": {
-    "args": [
-      [
-        "source",
-        {
-          "cl_type": "URef",
-          "bytes": "722e1b3d31bef0ba832121bd2941aae6a246d0d05ac95aa16dd587cc5469871d01",
-          "parsed": "uref-722e1b3d31bef0ba832121bd2941aae6a246d0d05ac95aa16dd587cc5469871d-001"
-        }
-      ],
-      [
-        "target",
-        {
-          "cl_type": "URef",
-          "bytes": "722e1b3d31bef0ba832121bd2941aae6a246d0d05ac95aa16dd587cc5469871d01",
-          "parsed": "uref-722e1b3d31bef0ba832121bd2941aae6a246d0d05ac95aa16dd587cc5469871d-001"
-        }
-      ],
-      [
-        "amount",
-        {
-          "cl_type": "U512",
-          "bytes": "010a",
-          "parsed": "10"
-        }
-      ]
-    ],
-    "target": "Native",
-    "entry_point": "Transfer",
-    "transaction_category": 0,
-    "scheduling": "Standard"
-  },
-  "approvals": []
-}
-"#;
+    use once_cell::sync::Lazy;
+    use serde_json::{json, Value};
+    static SAMPLE_TRANSACTION: Lazy<Value> = Lazy::new(|| {
+        json!({
+          "hash": "f868596bbfd729547ffa25c3421df29d6650cec73e9fe3d0aff633fe2d6ac952",
+          "header": {
+            "chain_name": "test",
+            "timestamp": "2024-01-26T19:08:53.498Z",
+            "ttl": "30m",
+            "body_hash": "fb94fd83178e3acf22546beebf5f44692499d681c4381f6d145d85ff9b5fc152",
+            "pricing_mode": {
+              "Fixed": {
+                "gas_price_tolerance": 10
+              }
+            },
+            "initiator_addr": {
+              "PublicKey": "01722e1b3d31bef0ba832121bd2941aae6a246d0d05ac95aa16dd587cc5469871d"
+            }
+          },
+          "body": {
+            "args": [
+              [
+                "source",
+                {
+                  "cl_type": "URef",
+                  "bytes": "722e1b3d31bef0ba832121bd2941aae6a246d0d05ac95aa16dd587cc5469871d01",
+                  "parsed": "uref-722e1b3d31bef0ba832121bd2941aae6a246d0d05ac95aa16dd587cc5469871d-001"
+                }
+              ],
+              [
+                "target",
+                {
+                  "cl_type": "URef",
+                  "bytes": "722e1b3d31bef0ba832121bd2941aae6a246d0d05ac95aa16dd587cc5469871d01",
+                  "parsed": "uref-722e1b3d31bef0ba832121bd2941aae6a246d0d05ac95aa16dd587cc5469871d-001"
+                }
+              ],
+              [
+                "amount",
+                {
+                  "cl_type": "U512",
+                  "bytes": "010a",
+                  "parsed": "10"
+                }
+              ]
+            ],
+            "target": "Native",
+            "entry_point": "Transfer",
+            "transaction_category": 0,
+            "scheduling": "Standard",
+            "transferred_value": 0,
+          },
+          "approvals": []
+        })
+    });
     const SAMPLE_DIGEST: &str =
         "01722e1b3d31bef0ba832121bd2941aae6a246d0d05ac95aa16dd587cc5469871d";
 
     #[test]
     fn should_sign_transaction() {
-        let bytes = SAMPLE_TRANSACTION.as_bytes();
-        let transaction = crate::read_transaction(bytes).unwrap();
+        let bytes = serde_json::to_string_pretty(&*SAMPLE_TRANSACTION).unwrap();
+        let transaction = crate::read_transaction(bytes.as_bytes()).unwrap();
         assert_eq!(
             transaction.approvals().len(),
             0,
@@ -561,6 +565,8 @@ mod transaction {
                 .as_ref()
                 .unwrap()
                 .args()
+                .as_named()
+                .unwrap()
                 .get("public_key")
                 .unwrap(),
             public_key_cl
@@ -569,10 +575,19 @@ mod transaction {
             .as_ref()
             .unwrap()
             .args()
+            .as_named()
+            .unwrap()
             .get("delegation_rate")
             .is_some());
         assert_eq!(
-            transaction.as_ref().unwrap().args().get("amount").unwrap(),
+            transaction
+                .as_ref()
+                .unwrap()
+                .args()
+                .as_named()
+                .unwrap()
+                .get("amount")
+                .unwrap(),
             amount_cl
         );
     }
@@ -617,7 +632,14 @@ mod transaction {
         assert!(transaction.is_ok(), "{:?}", transaction);
         assert_eq!(transaction.as_ref().unwrap().chain_name(), "delegate");
         assert_eq!(
-            transaction.as_ref().unwrap().args().get("amount").unwrap(),
+            transaction
+                .as_ref()
+                .unwrap()
+                .args()
+                .as_named()
+                .unwrap()
+                .get("amount")
+                .unwrap(),
             amount_cl
         );
         assert_eq!(
@@ -625,6 +647,8 @@ mod transaction {
                 .as_ref()
                 .unwrap()
                 .args()
+                .as_named()
+                .unwrap()
                 .get("delegator")
                 .unwrap(),
             delegator_public_key_cl
@@ -634,6 +658,8 @@ mod transaction {
                 .as_ref()
                 .unwrap()
                 .args()
+                .as_named()
+                .unwrap()
                 .get("validator")
                 .unwrap(),
             validator_public_key_cl
@@ -675,7 +701,14 @@ mod transaction {
         assert!(transaction.is_ok(), "{:?}", transaction);
         assert_eq!(transaction.as_ref().unwrap().chain_name(), "withdraw-bid");
         assert_eq!(
-            transaction.as_ref().unwrap().args().get("amount").unwrap(),
+            transaction
+                .as_ref()
+                .unwrap()
+                .args()
+                .as_named()
+                .unwrap()
+                .get("amount")
+                .unwrap(),
             amount_cl
         );
         assert_eq!(
@@ -683,6 +716,8 @@ mod transaction {
                 .as_ref()
                 .unwrap()
                 .args()
+                .as_named()
+                .unwrap()
                 .get("public_key")
                 .unwrap(),
             public_key_cl
@@ -730,7 +765,14 @@ mod transaction {
         assert!(transaction.is_ok(), "{:?}", transaction);
         assert_eq!(transaction.as_ref().unwrap().chain_name(), "undelegate");
         assert_eq!(
-            transaction.as_ref().unwrap().args().get("amount").unwrap(),
+            transaction
+                .as_ref()
+                .unwrap()
+                .args()
+                .as_named()
+                .unwrap()
+                .get("amount")
+                .unwrap(),
             amount_cl
         );
         assert_eq!(
@@ -738,6 +780,8 @@ mod transaction {
                 .as_ref()
                 .unwrap()
                 .args()
+                .as_named()
+                .unwrap()
                 .get("delegator")
                 .unwrap(),
             delegator_public_key_cl
@@ -747,6 +791,8 @@ mod transaction {
                 .as_ref()
                 .unwrap()
                 .args()
+                .as_named()
+                .unwrap()
                 .get("validator")
                 .unwrap(),
             validator_public_key_cl
@@ -796,7 +842,14 @@ mod transaction {
         assert!(transaction.is_ok(), "{:?}", transaction);
         assert_eq!(transaction.as_ref().unwrap().chain_name(), "redelegate");
         assert_eq!(
-            transaction.as_ref().unwrap().args().get("amount").unwrap(),
+            transaction
+                .as_ref()
+                .unwrap()
+                .args()
+                .as_named()
+                .unwrap()
+                .get("amount")
+                .unwrap(),
             amount_cl
         );
         assert_eq!(
@@ -804,6 +857,8 @@ mod transaction {
                 .as_ref()
                 .unwrap()
                 .args()
+                .as_named()
+                .unwrap()
                 .get("delegator")
                 .unwrap(),
             delegator_public_key_cl
@@ -813,6 +868,8 @@ mod transaction {
                 .as_ref()
                 .unwrap()
                 .args()
+                .as_named()
+                .unwrap()
                 .get("validator")
                 .unwrap(),
             validator_public_key_cl
@@ -822,6 +879,8 @@ mod transaction {
                 .as_ref()
                 .unwrap()
                 .args()
+                .as_named()
+                .unwrap()
                 .get("new_validator")
                 .unwrap(),
             new_validator_public_key_cl
@@ -1086,11 +1145,25 @@ mod transaction {
             &TransactionEntryPoint::Transfer
         );
         assert_eq!(
-            transaction.as_ref().unwrap().args().get("source").unwrap(),
+            transaction
+                .as_ref()
+                .unwrap()
+                .args()
+                .as_named()
+                .unwrap()
+                .get("source")
+                .unwrap(),
             source_uref_cl
         );
         assert_eq!(
-            transaction.as_ref().unwrap().args().get("target").unwrap(),
+            transaction
+                .as_ref()
+                .unwrap()
+                .args()
+                .as_named()
+                .unwrap()
+                .get("target")
+                .unwrap(),
             target_uref_cl
         );
     }
