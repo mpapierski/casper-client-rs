@@ -38,6 +38,7 @@ pub(super) enum DisplayOrder {
     Source,
     SessionArgSimple,
     SessionArgsJson,
+    ChunkedArgs,
     SessionEntryPoint,
     SessionVersion,
     PublicKey,
@@ -297,6 +298,38 @@ pub(super) mod args_json {
             .value_name(ARG_VALUE_NAME)
             .help(ARG_HELP.as_str())
             .display_order(order)
+    }
+}
+
+/// Handles providing the arg for and retrieval of chunked arguments passed as base16 string.
+pub(super) mod chunked_args {
+    use super::*;
+    use once_cell::sync::Lazy;
+
+    pub const ARG_NAME: &str = "chunked-args";
+
+    const ARG_VALUE_NAME: &str = "BYTES";
+
+    static ARG_HELP: Lazy<String> = Lazy::new(|| {
+        format!(
+            "Chunked arg bytes as base16 '--{}'.",
+            show_json_args_examples::ARG_NAME,
+        )
+    });
+
+    pub fn get(matches: &ArgMatches) -> Option<Vec<u8>> {
+        matches
+            .get_one::<String>(ARG_NAME)
+            .and_then(|data| base16::decode(data).ok())
+    }
+
+    pub fn arg() -> Arg {
+        Arg::new(ARG_NAME)
+            .long(ARG_NAME)
+            .required(false)
+            .value_name(ARG_VALUE_NAME)
+            .help(ARG_HELP.as_str())
+            .display_order(DisplayOrder::ChunkedArgs as usize)
     }
 }
 
@@ -1896,6 +1929,7 @@ pub(super) mod session {
             .arg(transaction_runtime::arg())
             .arg(gas_limit::arg())
             .arg(transferred_value::arg())
+            .arg(chunked_args::arg())
     }
 }
 
@@ -2081,6 +2115,7 @@ pub(super) fn build_transaction_str_params(
     let maybe_output_path = output::get(matches).unwrap_or_default();
     let initiator_addr = initiator_address::get(matches);
     let session_entry_point = session_entry_point::get(matches);
+    let chunked_args = chunked_args::get(matches);
 
     if obtain_session_args {
         let session_args_simple = arg_simple::session::get(matches);
@@ -2104,6 +2139,7 @@ pub(super) fn build_transaction_str_params(
                 .unwrap_or_default(),
             gas_limit,
             session_entry_point,
+            chunked_args,
         }
     } else {
         TransactionStrParams {

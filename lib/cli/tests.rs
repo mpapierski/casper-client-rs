@@ -548,6 +548,7 @@ mod transaction {
             transferred_value: "0",
             gas_limit: "",
             session_entry_point: None,
+            chunked_args: None,
         };
 
         let transaction_builder_params = TransactionBuilderParams::AddBid {
@@ -624,6 +625,7 @@ mod transaction {
             transferred_value: "0",
             gas_limit: "",
             session_entry_point: None,
+            chunked_args: None,
         };
 
         let transaction_builder_params = TransactionBuilderParams::Delegate {
@@ -699,6 +701,7 @@ mod transaction {
             transferred_value: "0",
             gas_limit: "",
             session_entry_point: None,
+            chunked_args: None,
         };
         let transaction_string_params = transaction_str_params;
 
@@ -764,6 +767,7 @@ mod transaction {
             transferred_value: "0",
             gas_limit: "",
             session_entry_point: None,
+            chunked_args: None,
         };
 
         let transaction_builder_params = TransactionBuilderParams::Undelegate {
@@ -845,6 +849,7 @@ mod transaction {
             transferred_value: "0",
             gas_limit: "",
             session_entry_point: None,
+            chunked_args: None,
         };
 
         let transaction_builder_params = TransactionBuilderParams::Redelegate {
@@ -932,6 +937,7 @@ mod transaction {
             transferred_value: "0",
             gas_limit: "",
             session_entry_point: None,
+            chunked_args: None,
         };
 
         let transaction_builder_params = TransactionBuilderParams::InvocableEntity {
@@ -977,6 +983,7 @@ mod transaction {
             transferred_value: "0",
             gas_limit: "",
             session_entry_point: None,
+            chunked_args: None,
         };
 
         let transaction_builder_params = TransactionBuilderParams::InvocableEntityAlias {
@@ -1026,6 +1033,7 @@ mod transaction {
             transferred_value: "0",
             gas_limit: "",
             session_entry_point: None,
+            chunked_args: None,
         };
 
         let transaction_builder_params = TransactionBuilderParams::Package {
@@ -1073,6 +1081,7 @@ mod transaction {
             transferred_value: "0",
             gas_limit: "",
             session_entry_point: None,
+            chunked_args: None,
         };
 
         let transaction_builder_params = TransactionBuilderParams::PackageAlias {
@@ -1115,6 +1124,7 @@ mod transaction {
             transferred_value: "0",
             gas_limit: "",
             session_entry_point: None,
+            chunked_args: None,
         };
 
         let transaction_builder_params = TransactionBuilderParams::Session {
@@ -1167,6 +1177,7 @@ mod transaction {
             transferred_value: "0",
             gas_limit: "",
             session_entry_point: None,
+            chunked_args: None,
         };
 
         let transaction_builder_params = TransactionBuilderParams::Transfer {
@@ -1225,6 +1236,7 @@ mod transaction {
             transferred_value: "0",
             gas_limit: "",
             session_entry_point: None,
+            chunked_args: None,
         };
         let transaction_builder_params = TransactionBuilderParams::Transfer {
             maybe_source: Default::default(),
@@ -1264,6 +1276,7 @@ mod transaction {
             transferred_value: "0",
             gas_limit: "",
             session_entry_point: None,
+            chunked_args: None,
         };
         let transaction_builder_params = TransactionBuilderParams::AddBid {
             public_key: PublicKey::from_hex(SAMPLE_ACCOUNT).unwrap(),
@@ -1300,6 +1313,7 @@ mod transaction {
             transferred_value: "0",
             gas_limit: "",
             session_entry_point: None,
+            chunked_args: None,
         };
         let transaction_builder_params = TransactionBuilderParams::AddBid {
             public_key: PublicKey::from_hex(SAMPLE_ACCOUNT).unwrap(),

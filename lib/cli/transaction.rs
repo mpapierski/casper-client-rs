@@ -78,11 +78,12 @@ pub fn create_transaction(
     let maybe_json_args = parse::args_json::session::parse(transaction_params.session_args_json)?;
     let maybe_simple_args =
         parse::arg_simple::session::parse(&transaction_params.session_args_simple)?;
+    let maybe_chunked_args = transaction_params.chunked_args;
 
-    let args = parse::args_from_simple_or_json(maybe_simple_args, maybe_json_args);
-    if !args.is_empty() {
-        transaction_builder = transaction_builder.with_runtime_args(args);
-    }
+    let args =
+        parse::args_from_simple_or_json(maybe_simple_args, maybe_json_args, maybe_chunked_args);
+
+    transaction_builder = transaction_builder.with_transaction_args(args);
 
     if let Some(session_entry_point) = transaction_params.session_entry_point {
         transaction_builder = transaction_builder.with_entry_point(session_entry_point);
